@@ -1,0 +1,29 @@
+@baseUrl = http://localhost:5080
+
+### Criar uma URL curta (código gerado automaticamente)
+POST {{baseUrl}}/urls
+Content-Type: application/json
+
+{
+  "url": "https://balta.io"
+}
+
+### URL inválida (deve retornar 400)
+POST {{baseUrl}}/urls
+Content-Type: application/json
+
+{
+  "url": "isso-nao-e-uma-url"
+}
+
+### Listar todas as URLs
+GET {{baseUrl}}/urls
+
+### Detalhes de uma URL (troque o código)
+GET {{baseUrl}}/urls/aZ3k9Qx
+
+### Navegar (302 para a URL original)
+GET {{baseUrl}}/aZ3k9Qx
+
+### Código inexistente (404)
+GET {{baseUrl}}/nao-existe
