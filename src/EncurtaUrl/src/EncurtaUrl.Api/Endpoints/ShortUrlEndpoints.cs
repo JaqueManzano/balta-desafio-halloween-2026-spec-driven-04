@@ -3,6 +3,7 @@ using EncurtaUrl.Api.Data;
 using EncurtaUrl.Api.Models;
 using EncurtaUrl.Api.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
 namespace EncurtaUrl.Api.Endpoints;
@@ -31,6 +32,7 @@ public static class ShortUrlEndpoints
         CreateShortUrlRequest request,
         AppDbContext db,
         IShortCodeGenerator generator,
+        ICustomShortCodeRules customCodeRules,
         HttpRequest http,
         CancellationToken ct)
     {
@@ -42,23 +44,46 @@ public static class ShortUrlEndpoints
             });
         }
 
-        string? code = null;
-
-        for (var attempt = 0; attempt < MaxGenerationAttempts; attempt++)
+        var requestedCode = request.Code;
+        string code;
+        if (requestedCode is null)
         {
-            var candidate = generator.Generate();
-            if (!await db.ShortUrls.AnyAsync(x => x.Code == candidate, ct))
+            string? generatedCode = null;
+
+            for (var attempt = 0; attempt < MaxGenerationAttempts; attempt++)
             {
-                code = candidate;
-                break;
+                var candidate = generator.Generate();
+                if (!await db.ShortUrls.AnyAsync(x => x.Code == candidate, ct))
+                {
+                    generatedCode = candidate;
+                    break;
+                }
             }
-        }
 
-        if (code is null)
+            if (generatedCode is null)
+            {
+                return TypedResults.Problem(
+                    title: "Não foi possível gerar um código único.",
+                    statusCode: StatusCodes.Status500InternalServerError);
+            }
+
+            code = generatedCode;
+        }
+        else
         {
-            return TypedResults.Problem(
-                title: "Não foi possível gerar um código único.",
-                statusCode: StatusCodes.Status500InternalServerError);
+            var validationError = customCodeRules.Validate(requestedCode);
+            if (validationError is not null)
+            {
+                return TypedResults.ValidationProblem(new Dictionary<string, string[]>
+                {
+                    ["code"] = [validationError]
+                });
+            }
+
+            if (await db.ShortUrls.AnyAsync(x => x.Code == requestedCode, ct))
+                return CodeInUse();
+
+            code = requestedCode;
         }
 
         var shortUrl = new ShortUrl
@@ -68,11 +93,36 @@ public static class ShortUrlEndpoints
         };
 
         db.ShortUrls.Add(shortUrl);
-        await db.SaveChangesAsync(ct);
+        try
+        {
+            await db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException exception) when (
+            requestedCode is not null && IsUniqueConstraintViolation(exception))
+        {
+            if (await db.ShortUrls
+                    .AsNoTracking()
+                    .AnyAsync(x => x.Code == requestedCode, ct))
+                return CodeInUse();
+
+            throw;
+        }
 
         var response = ToResponse(shortUrl, http);
         return TypedResults.Created($"/urls/{shortUrl.Code}", response);
     }
+
+    private static ProblemHttpResult CodeInUse()
+        => TypedResults.Problem(
+            title: "O código informado já está em uso.",
+            detail: "Escolha outro código personalizado.",
+            statusCode: StatusCodes.Status409Conflict);
+
+    private static bool IsUniqueConstraintViolation(DbUpdateException exception)
+        => exception.InnerException is SqliteException
+        {
+            SqliteExtendedErrorCode: 2067
+        };
 
     private static async Task<Ok<List<ShortUrlResponse>>> ListAsync(
         AppDbContext db,

@@ -8,6 +8,42 @@ Content-Type: application/json
   "url": "https://balta.io"
 }
 
+### Código nulo também usa geração automática
+POST {{baseUrl}}/urls
+Content-Type: application/json
+
+{
+  "url": "https://balta.io",
+  "code": null
+}
+
+### Criar URL curta com código customizado
+POST {{baseUrl}}/urls
+Content-Type: application/json
+
+{
+  "url": "https://balta.io",
+  "code": "balta-io"
+}
+
+### Tamanho mínimo válido: 3 caracteres
+POST {{baseUrl}}/urls
+Content-Type: application/json
+
+{
+  "url": "https://balta.io",
+  "code": "abc"
+}
+
+### Tamanho máximo válido: 32 caracteres
+POST {{baseUrl}}/urls
+Content-Type: application/json
+
+{
+  "url": "https://balta.io",
+  "code": "12345678901234567890123456789012"
+}
+
 ### URL inválida (deve retornar 400)
 POST {{baseUrl}}/urls
 Content-Type: application/json
@@ -16,14 +52,77 @@ Content-Type: application/json
   "url": "isso-nao-e-uma-url"
 }
 
+### Código abaixo do limite (deve retornar 400)
+POST {{baseUrl}}/urls
+Content-Type: application/json
+
+{
+  "url": "https://balta.io",
+  "code": "ab"
+}
+
+### Código acima do limite (deve retornar 400)
+POST {{baseUrl}}/urls
+Content-Type: application/json
+
+{
+  "url": "https://balta.io",
+  "code": "123456789012345678901234567890123"
+}
+
+### Caractere não permitido (deve retornar 400)
+POST {{baseUrl}}/urls
+Content-Type: application/json
+
+{
+  "url": "https://balta.io",
+  "code": "balta.io"
+}
+
+### Código vazio (deve retornar 400)
+POST {{baseUrl}}/urls
+Content-Type: application/json
+
+{
+  "url": "https://balta.io",
+  "code": ""
+}
+
+### Código em branco (deve retornar 400)
+POST {{baseUrl}}/urls
+Content-Type: application/json
+
+{
+  "url": "https://balta.io",
+  "code": "   "
+}
+
+### Rota reservada sem diferenciar maiúsculas/minúsculas (deve retornar 400)
+POST {{baseUrl}}/urls
+Content-Type: application/json
+
+{
+  "url": "https://balta.io",
+  "code": "URLs"
+}
+
+### Código em uso (deve retornar 409 após criar balta-io acima)
+POST {{baseUrl}}/urls
+Content-Type: application/json
+
+{
+  "url": "https://balta.io",
+  "code": "balta-io"
+}
+
 ### Listar todas as URLs
 GET {{baseUrl}}/urls
 
-### Detalhes de uma URL (troque o código)
-GET {{baseUrl}}/urls/aZ3k9Qx
+### Navegar pelo código customizado (302 para a URL original)
+GET {{baseUrl}}/balta-io
 
-### Navegar (302 para a URL original)
-GET {{baseUrl}}/aZ3k9Qx
+### Detalhes da URL customizada e contagem de cliques após navegar
+GET {{baseUrl}}/urls/balta-io
 
 ### Código inexistente (404)
 GET {{baseUrl}}/nao-existe

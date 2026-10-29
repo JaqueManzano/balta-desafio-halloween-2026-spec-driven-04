@@ -12,7 +12,7 @@
 
 **Purpose**: Verify the existing project baseline before making changes.
 
-- [ ] T001 Run `dotnet build` for `src/EncurtaUrl/src/EncurtaUrl.Api/EncurtaUrl.Api.csproj` and record any pre-existing build failures or warnings.
+- [X] T001 Run `dotnet build` for `src/EncurtaUrl/src/EncurtaUrl.Api/EncurtaUrl.Api.csproj`; recorded baseline failure `NU1301` because the configured NuGet source is unreachable.
 
 ---
 
@@ -34,11 +34,11 @@ No separate foundational changes are needed: the API project, SQLite context, un
 
 ### Implementation for User Story 1
 
-- [ ] T002 [P] [US1] Add `ICustomShortCodeRules` and its implementation in `src/EncurtaUrl/src/EncurtaUrl.Api/Services/CustomShortCodeRules.cs`; validate custom codes as 3–32 ASCII letters/digits/hyphens/underscores, rejecting route names `urls` and `openapi` without regard to capitalization.
-- [ ] T003 [P] [US1] Extend `CreateShortUrlRequest` with an optional nullable `Code` property defaulting to null in `src/EncurtaUrl/src/EncurtaUrl.Api/Contracts/ShortUrlContracts.cs`.
-- [ ] T004 [US1] Register `ICustomShortCodeRules` in `src/EncurtaUrl/src/EncurtaUrl.Api/Program.cs` without adding a package or changing other service registrations.
-- [ ] T005 [US1] Update `CreateAsync` in `src/EncurtaUrl/src/EncurtaUrl.Api/Endpoints/ShortUrlEndpoints.cs` to preserve URL validation, reject invalid supplied codes with `ValidationProblem`, persist a valid supplied code, and use the existing generator only when `Code` is omitted or null; leave generated-code behavior unchanged.
-- [ ] T006 [P] [US1] Add `POST /urls` scenarios with `code` omitted and with `"code": null` (both must use automatic generation), valid custom codes of 3 and 32 characters, and `balta-io`; then verify `GET /balta-io` redirects and `GET /urls/balta-io` reports the incremented click count in `src/EncurtaUrl/src/EncurtaUrl.Api/EncurtaUrl.Api.http`.
+- [X] T002 [P] [US1] Add `ICustomShortCodeRules` and its implementation in `src/EncurtaUrl/src/EncurtaUrl.Api/Services/CustomShortCodeRules.cs`; validate custom codes as 3–32 ASCII letters/digits/hyphens/underscores, rejecting route names `urls` and `openapi` without regard to capitalization.
+- [X] T003 [P] [US1] Extend `CreateShortUrlRequest` with an optional nullable `Code` property defaulting to null in `src/EncurtaUrl/src/EncurtaUrl.Api/Contracts/ShortUrlContracts.cs`.
+- [X] T004 [US1] Register `ICustomShortCodeRules` in `src/EncurtaUrl/src/EncurtaUrl.Api/Program.cs` without adding a package or changing other service registrations.
+- [X] T005 [US1] Update `CreateAsync` in `src/EncurtaUrl/src/EncurtaUrl.Api/Endpoints/ShortUrlEndpoints.cs` to preserve URL validation, reject invalid supplied codes with `ValidationProblem`, persist a valid supplied code, and use the existing generator only when `Code` is omitted or null; leave generated-code behavior unchanged.
+- [X] T006 [P] [US1] Add `POST /urls` scenarios with `code` omitted and with `"code": null` (both must use automatic generation), valid custom codes of 3 and 32 characters, and `balta-io`; then verify `GET /balta-io` redirects and `GET /urls/balta-io` reports the incremented click count in `src/EncurtaUrl/src/EncurtaUrl.Api/EncurtaUrl.Api.http`.
 
 **Checkpoint**: Custom-code creation, automatic generation, redirect, and click counting are independently verifiable.
 
@@ -52,8 +52,8 @@ No separate foundational changes are needed: the API project, SQLite context, un
 
 ### Implementation for User Story 2
 
-- [ ] T007 [US2] Update `CreateAsync` in `src/EncurtaUrl/src/EncurtaUrl.Api/Endpoints/ShortUrlEndpoints.cs` to return a Portuguese 409 ProblemDetails when a custom code already exists and, around `SaveChangesAsync`, map only `DbUpdateException` with inner SQLite `SqliteExtendedErrorCode == 2067` to 409 after confirming the requested code now exists; rethrow unrelated database failures.
-- [ ] T008 [US2] Add `POST /urls` error scenarios for 2-character and 33-character codes, disallowed characters, empty and whitespace-only codes, case-insensitive reserved code `URLs`, and reusing `balta-io`; assert invalid-code requests return 400 without creating a short URL and the duplicate returns 409 in `src/EncurtaUrl/src/EncurtaUrl.Api/EncurtaUrl.Api.http`.
+- [X] T007 [US2] Update `CreateAsync` in `src/EncurtaUrl/src/EncurtaUrl.Api/Endpoints/ShortUrlEndpoints.cs` to return a Portuguese 409 ProblemDetails when a custom code already exists and, around `SaveChangesAsync`, map only `DbUpdateException` with inner SQLite `SqliteExtendedErrorCode == 2067` to 409 after confirming the requested code now exists; rethrow unrelated database failures.
+- [X] T008 [US2] Add `POST /urls` error scenarios for 2-character and 33-character codes, disallowed characters, empty and whitespace-only codes, case-insensitive reserved code `URLs`, and reusing `balta-io`; assert invalid-code requests return 400 without creating a short URL and the duplicate returns 409 in `src/EncurtaUrl/src/EncurtaUrl.Api/EncurtaUrl.Api.http`.
 
 **Checkpoint**: Existing duplicates and unique-index races produce the same clear code-in-use conflict; unrelated save errors are not disguised as conflicts.
 
@@ -67,7 +67,7 @@ No separate foundational changes are needed: the API project, SQLite context, un
 
 ### Implementation for User Story 3
 
-- [ ] T009 [US3] Add `GET /urls` and `GET /urls/balta-io` verification requests after creating the custom URL in `src/EncurtaUrl/src/EncurtaUrl.Api/EncurtaUrl.Api.http`; retain the existing response fields and not-found request for unknown codes.
+- [X] T009 [US3] Add `GET /urls` and `GET /urls/balta-io` verification requests after creating the custom URL in `src/EncurtaUrl/src/EncurtaUrl.Api/EncurtaUrl.Api.http`; retain the existing response fields and not-found request for unknown codes.
 
 **Checkpoint**: Generated and custom codes share the existing list, details, and navigation behavior.
 
@@ -77,7 +77,7 @@ No separate foundational changes are needed: the API project, SQLite context, un
 
 **Purpose**: Update user-facing documentation and verify the completed feature.
 
-- [ ] T010 [P] Update `src/EncurtaUrl/README.md` to document the optional custom code, its allowed format, reserved route names, and 400/409 outcomes without changing the existing endpoint set.
+- [X] T010 [P] Update `src/EncurtaUrl/README.md` to document the optional custom code, its allowed format, reserved route names, and 400/409 outcomes without changing the existing endpoint set.
 - [ ] T011 Run `dotnet build` for `src/EncurtaUrl/src/EncurtaUrl.Api/EncurtaUrl.Api.csproj` and execute the scenarios in `src/EncurtaUrl/src/EncurtaUrl.Api/EncurtaUrl.Api.http` and `specs/001-custom-short-code/quickstart.md`; confirm no new build warnings, the custom-code workflows succeed, and the concurrent duplicate scenario has at most one success.
 
 ---

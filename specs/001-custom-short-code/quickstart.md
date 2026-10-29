@@ -36,6 +36,30 @@ Use the corresponding requests in `src/EncurtaUrl/src/EncurtaUrl.Api/EncurtaUrl.
 7. **Concurrent duplicate**: Send two create requests with the same unused custom code
    concurrently. Expect at most one `201`; the other request must receive `409`.
 
+To send a concurrent duplicate check from PowerShell while the API is running, use a
+fresh code value and run:
+
+```powershell
+$client = [System.Net.Http.HttpClient]::new()
+$uri = 'http://localhost:5080/urls'
+$json = '{"url":"https://balta.io","code":"race-check-01"}'
+$send = {
+    param($httpClient, $target, $body)
+    $content = [System.Net.Http.StringContent]::new(
+        $body,
+        [System.Text.Encoding]::UTF8,
+        'application/json')
+    $httpClient.PostAsync($target, $content)
+}
+$first = $send.Invoke($client, $uri, $json)
+$second = $send.Invoke($client, $uri, $json)
+[System.Threading.Tasks.Task]::WaitAll(@($first, $second))
+@($first.Result.StatusCode, $second.Result.StatusCode)
+$client.Dispose()
+```
+
+The two results must be one `Created` (201) and one `Conflict` (409).
+
 ## Contract and model references
 
 - Request and route behavior: [contracts/short-urls.md](./contracts/short-urls.md)
