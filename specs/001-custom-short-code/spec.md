@@ -8,6 +8,13 @@
 
 **Input**: User description: "Permitir que o usuário informe um código customizado ao encurtar uma URL. O código é opcional; códigos válidos precisam ser únicos e não conflitar com rotas da API. Listagem, detalhes e redirecionamento devem continuar funcionando. Fora do escopo: editar ou remover código, autenticação e expiração."
 
+## Clarifications
+
+### Session 2026-10-28
+
+- Q: Qual deve ser o tamanho mínimo permitido para um código customizado? → A: 3 caracteres; o máximo é 32.
+- Q: Os códigos reservados por coincidirem com rotas devem ser bloqueados também quando diferirem apenas em maiúsculas e minúsculas? → A: Sim; nomes de rota reservados não diferenciam maiúsculas/minúsculas.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Create a short URL with a custom code (Priority: P1)
@@ -57,6 +64,7 @@ As a person using the existing short URL service, I want custom-code links to be
 - A whitespace-only or empty custom code is treated as invalid when supplied; an omitted code requests automatic generation.
 - When two creation requests attempt the same custom code at nearly the same time, no more than one succeeds and the other receives an already-in-use error.
 - Reserved codes are rejected even when they otherwise satisfy the character and length rules.
+- Reserved route names are rejected regardless of capitalization; case sensitivity for other codes remains unchanged.
 - A code that does not exist continues to follow the current not-found behavior when opened or queried.
 - An invalid destination URL continues to be rejected under the existing creation rules, regardless of whether a custom code was supplied.
 
@@ -68,7 +76,7 @@ As a person using the existing short URL service, I want custom-code links to be
 - **FR-002**: When no custom code is provided, the system MUST continue generating codes according to the existing behavior.
 - **FR-003**: The system MUST accept custom codes containing only ASCII letters, digits, hyphens, and underscores.
 - **FR-004**: A custom code MUST contain between 3 and 32 characters, inclusive.
-- **FR-005**: The system MUST reject custom codes that conflict with existing API route names, including `urls` and `openapi`.
+- **FR-005**: The system MUST reject custom codes that conflict with existing API route names, including `urls` and `openapi`, without regard to capitalization.
 - **FR-006**: The system MUST ensure each code identifies no more than one short URL. If a custom code is already in use, creation MUST be rejected with a clear conflict response indicating that the code is in use.
 - **FR-007**: Concurrent attempts to create a short URL with the same custom code MUST result in at most one successful creation; each unsuccessful attempt MUST receive the same code-in-use outcome.
 - **FR-008**: A successfully created custom-code URL MUST be returned with the chosen code in its short link.
@@ -95,6 +103,6 @@ As a person using the existing short URL service, I want custom-code links to be
 
 - The existing service's code storage limit of 32 characters is the upper bound for custom codes; a minimum of 3 characters provides a practical baseline for memorable aliases.
 - Code matching is case-sensitive, consistent with path-based codes; differently cased values are distinct codes.
-- `urls` and `openapi` are reserved because those names are used by existing API routes. Additional route names must also be reserved if introduced.
+- `urls` and `openapi` are reserved because those names are used by existing API routes. Reserved route names are compared without regard to capitalization; additional route names must also be reserved if introduced.
 - Validation errors use the existing validation response convention, while code uniqueness conflicts use a conflict response.
 - The current short URL creation, listing, details, and redirect behavior remains the source of truth for all fields and responses not changed by this feature.
