@@ -38,7 +38,7 @@ No separate foundational changes are needed: the API project, SQLite context, un
 - [ ] T003 [P] [US1] Extend `CreateShortUrlRequest` with an optional nullable `Code` property defaulting to null in `src/EncurtaUrl/src/EncurtaUrl.Api/Contracts/ShortUrlContracts.cs`.
 - [ ] T004 [US1] Register `ICustomShortCodeRules` in `src/EncurtaUrl/src/EncurtaUrl.Api/Program.cs` without adding a package or changing other service registrations.
 - [ ] T005 [US1] Update `CreateAsync` in `src/EncurtaUrl/src/EncurtaUrl.Api/Endpoints/ShortUrlEndpoints.cs` to preserve URL validation, reject invalid supplied codes with `ValidationProblem`, persist a valid supplied code, and use the existing generator only when `Code` is omitted or null; leave generated-code behavior unchanged.
-- [ ] T006 [P] [US1] Add `POST /urls` scenarios for omitted code, a valid 3-character code, a valid 32-character code, and creation with `balta-io`, followed by its redirect and details click-count check in `src/EncurtaUrl/src/EncurtaUrl.Api/EncurtaUrl.Api.http`.
+- [ ] T006 [P] [US1] Add `POST /urls` scenarios with `code` omitted and with `"code": null` (both must use automatic generation), valid custom codes of 3 and 32 characters, and `balta-io`; then verify `GET /balta-io` redirects and `GET /urls/balta-io` reports the incremented click count in `src/EncurtaUrl/src/EncurtaUrl.Api/EncurtaUrl.Api.http`.
 
 **Checkpoint**: Custom-code creation, automatic generation, redirect, and click counting are independently verifiable.
 
@@ -53,7 +53,7 @@ No separate foundational changes are needed: the API project, SQLite context, un
 ### Implementation for User Story 2
 
 - [ ] T007 [US2] Update `CreateAsync` in `src/EncurtaUrl/src/EncurtaUrl.Api/Endpoints/ShortUrlEndpoints.cs` to return a Portuguese 409 ProblemDetails when a custom code already exists and, around `SaveChangesAsync`, map only `DbUpdateException` with inner SQLite `SqliteExtendedErrorCode == 2067` to 409 after confirming the requested code now exists; rethrow unrelated database failures.
-- [ ] T008 [US2] Add `POST /urls` error scenarios for invalid length, disallowed characters, case-insensitive reserved code `URLs`, and reusing `balta-io`; assert validation failures return 400 and the duplicate returns 409 in `src/EncurtaUrl/src/EncurtaUrl.Api/EncurtaUrl.Api.http`.
+- [ ] T008 [US2] Add `POST /urls` error scenarios for 2-character and 33-character codes, disallowed characters, empty and whitespace-only codes, case-insensitive reserved code `URLs`, and reusing `balta-io`; assert invalid-code requests return 400 without creating a short URL and the duplicate returns 409 in `src/EncurtaUrl/src/EncurtaUrl.Api/EncurtaUrl.Api.http`.
 
 **Checkpoint**: Existing duplicates and unique-index races produce the same clear code-in-use conflict; unrelated save errors are not disguised as conflicts.
 
